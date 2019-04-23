@@ -1,4 +1,4 @@
-## reatelimiter is wrapper token-bucket and count-limit by golang 
+## ratelimiter is wrapper token-bucket and count-limit by golang 
 
 ## single instance
 
