@@ -1,7 +1,6 @@
 // Create by Yale 2019/4/23 17:18
 package ratelimiter
 
-
 import (
 	"fmt"
 	"github.com/robfig/cron"
@@ -45,12 +44,15 @@ func NewLimiter(tokenBucket *TokenLimiter, countLimiters ...*CountLimiter) *Limi
 	}
 	return &Limiter{tokenLimiter: tokenBucket, countLimiter: countLimiters}
 }
-func (limiter *Limiter) Allow() (bool, string) {
+func (limiter *Limiter) AllowTokenLimiter() (bool, string) {
 	if limiter.tokenLimiter != nil && limiter.tokenLimiter.tokenBucket != nil {
 		if !limiter.tokenLimiter.tokenBucket.Allow() {
 			return false, limiter.tokenLimiter.AllowFailMsg
 		}
 	}
+	return true, ""
+}
+func (limiter *Limiter) AllowCountLimiter() (bool, string) {
 	for i, _ := range limiter.countLimiter {
 		limiter.countLimiter[i].Increase()
 		if !limiter.countLimiter[i].Allow() {
@@ -58,6 +60,13 @@ func (limiter *Limiter) Allow() (bool, string) {
 		}
 	}
 	return true, ""
+}
+func (limiter *Limiter) Allow() (bool, string) {
+	r, s := limiter.AllowTokenLimiter()
+	if !r {
+		return r, s
+	}
+	return limiter.AllowCountLimiter()
 }
 
 type CountLimiter struct {
@@ -139,4 +148,3 @@ func (rl *RateLimiter) Get(key string) *Limiter {
 	rl.data[key] = lt
 	return lt
 }
-
